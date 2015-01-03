@@ -1,0 +1,68 @@
+
+-------------------------------------------------------------
+
+Administrator: Command Prompt - Workspace Setup Starting...                                                                     
+
+-------------------------------------------------------------
+
+User accepted the operation.
+
+ > cd Z:\workspaces\wgt\golfweb\devm\WorldGolfTour
+
+User agreed to the operation request.
+
+[Remap-Drive] Replace existing mapping  W
+
+ > subst W: /D
+
+ > subst W: Z:\workspaces\wgt\golfweb\devm\WorldGolfTour
+
+ > W: [Change Drive [W]]
+
+ > dir
+
+[Set-Environment-Variable] WGT_WORKSPACE_DIR - Not updated, values were equal.
+
+ > $env:WGT_WORKSPACE_DIR="W"
+
+User agreed to the operation request.
+
+Skipping download Notepad ++ [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\npp.6.7.Installer.exe]                                                                                                                                      
+
+Skipping download Powershell Community Extensions [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\pscx.msi]                                                                                                                              
+
+Skipping download GitHub Desktop For Windows [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\p4inst.exe]                                                                                                                                 
+
+Skipping download P4V 64-Bit [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\p4inst.exe]                                                                                                                                                 
+
+Skipping download Windows Process Explorer [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\ProcessExplorer.zip]                                                                                                                          
+
+Skipping download Java 7 SDK [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\jdk-7u71-windows-x64.exe]                                                                                                                                   
+
+Skipping download Apache Maven 3.2.25 [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\apache-maven-3.2.5-bin.zip]                                                                                                                        
+
+Skipping download FireFox Developer Edition [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\FireFoxDeveloper.exe]                                                                                                                        
+
+Skipping download Chrome [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\ChromeSetup.exe]                                                                                                                                                
+
+Skipping download Charles Web Proxy [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\charles-proxy-3.9.3-win64.msi]                                                                                                                       
+
+Skipping download Flash Player 16 Content Debugger Active X [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\flashplayer_16_ax_debug.exe]                                                                                                 
+
+Skipping download Flash Player 16 Content Debugger (FireFox) NPAPI [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\flashplayer_16_ax_debug.exe]                                                                                          
+
+Skipping download Flash Player 16 Content Debugger (Chrome / Opera) PPAPI [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\flashplayer_16_ax_debug.exe]                                                                                   
+
+Skipping download Skype Desktop for Windows 64 [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\SkypeSetup.exe]                                                                                                                           
+
+Skipping download F.lux [C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\flux-setup.exe]                                                                                                                                                  
+
+Path Updated to C:\Program Files\Broadcom\Broadcom 802.11 Network Adapter\Driver;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files\WIDCOMM\Bluetooth Software\;C:\Program Files\WIDCOMM\Bluetooth Software\syswow64;C:\Program Files (x86)\AMD\ATI.ACE\Core-Static;C:\Program Files\Perforce;C:\Program Files (x86)\Apache\apache-maven-3.2.5\bin; after installation of Notepad ++
+
+ > move "C:\Users\TheTechnoViking\Desktop\WorkspaceSetupTool\downloads\ProcessExplorer" "C:\Program Files (x86)\"                                                                                                                                       
+
+[Set-Environment-Variable] JAVA_HOME - Not updated, values were equal.                                                                                                                                                                                  
+
+ > $env:JAVA_HOME="C:\Program Files\Java\jdk1.7.0_71"                                                                                                                                                                                                   
+
+ > java -version                                                                                                                                                                                                                                        

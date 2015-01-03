@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<Downloads DownloadDirectory="/downloads">
+    <!-- NOTE These are Downloaded in Parallel, however, they are installed in-order, to insure any dependencies are available -->
+    <!-- BASE TEXT EDITOR / CODING IDE -->
+    <Installer 
+        Name="Notepad ++" 
+        LocalFile="npp.6.7.Installer.exe" 
+        Protocol="http"
+        Url="download.tuxfamily.org"
+        Port=""
+        Path="/notepadplus/6.7/npp.6.7.Installer.exe"
+        Query=""
+        Nature="exe"
+        />
+
+    <!-- POWERSHELL SOFTWARE -->
+
+    <Installer
+        Name="Powershell Community Extensions"
+        LocalFile="pscx.msi"
+        Protocol="win-share" 
+        Url="\\VIKING\Server\software\Pscx-3.2.0.msi"
+        Port=""
+        Path=""
+        Query=""
+        Nature="msi"
+        />
+        
+    <Installer
+        Name="GitHub Desktop For Windows"
+        LocalFile="p4inst.exe"
+        Protocol="https"
+        Url="github-windows.s3.amazonaws.com"
+        Port=""
+        Path="/GitHubSetup.exe"
+        Query=""
+        Nature="exe"
+        />
+        
+    <!-- PERFORCE SOFTWARE -->
+    <Installer
+        Name="P4V 64-Bit"
+        LocalFile="p4inst.exe"
+        Protocol="http"
+        Url="cdist2.perforce.com"
+        Port=""
+        Path="/perforce/r14.2/bin.ntx64/p4vinst64.exe"
+        Query=""
+        Nature="exe"
+        />
+    
+    <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+    <!--  WORKSPACE TOOLS -->
+    <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+    <Installer
+        Name="Windows Process Explorer"
+        LocalFile="ProcessExplorer.zip"
+        Protocol="http"
+        Url="download.sysinternals.com"
+        Port=""
+        Path="/files/ProcessExplorer.zip"
+        Query=""
+        Nature="zip"
+        ExtractTo="ProcessExplorer"
+        MoveTo="C:\Program Files (x86)\"
+        InstallerFile=""
+    />
+    
+    <Installer
+        Name="Java 7 SDK"
+        LocalFile="jdk-7u71-windows-x64.exe"
+        Protocol="win-share"
+        Url="\\VIKING\Server\software\jdk-7u71-windows-x64.exe"
+        Port=""
+        Path=""
+        Query=""
+        Nature="exe"
+    >
+        <Env>
+            <Var key="JAVA_HOME"    level="Machine" valueType="PATH"    setType="SET"       prompt="false"   defaultValue="C:\Program Files\Java\jdk1.7.0_71"        />
+        </Env>
+        <Commands>
+            <Command Value="java -version"/>
+        </Commands> 
+    </Installer>
+    
+    
+    <Installer
+        Name="Apache Maven 3.2.25"
+        LocalFile="apache-maven-3.2.5-bin.zip"
+        Protocol="http"
+        Url="mirror.cc.columbia.edu"
+        Port=""
+        Path="/pub/software/apache/maven/maven-3/3.2.5/binaries/apache-maven-3.2.5-bin.zip"
+        Query=""
+        Nature="zip"
+        ExtractTo="Apache"
+        MoveTo="C:\Program Files (x86)\"
+        InstallerFile="">
+        <Env>
+            <Var key="Path" level="Machine" 
+                 valueType="STRING"  setType="APPEND"    
+                 prompt="true"   allowDuplicateAppend="false"
+                 defaultValue="C:\Program Files (x86)\Apache\apache-maven-3.2.5\bin;"
+                 />
+        </Env>
+        <Commands>
+            <Command Value="mvn --version"/>
+        </Commands>
+    </Installer>
+
+    <Installer
+        Name="FireFox Developer Edition"
+        LocalFile="FireFoxDeveloper.exe"
+        Protocol="https"
+        Url="download-installer.cdn.mozilla.net"
+        Port=""
+        Path="/pub/firefox/nightly/latest-mozilla-aurora/firefox-36.0a2.en-US.win32.installer-stub.exe"
+        Query=""
+        Nature="exe"
+        />
+
+    <Installer 
+        Name="Chrome"
+        LocalFile="ChromeSetup.exe"
+        Protocol="https"
+        Url="dl.google.com"
+        Port=""
+        Path="/tag/s/lang%3Den%26appname%3DGoogle%2520Chrome/update2/installers/ChromeSetup.exe"
+        Query=""
+        Nature="exe"
+        />
+
+    <Installer 
+        Name="Charles Web Proxy"
+        LocalFile="charles-proxy-3.9.3-win64.msi"
+        Protocol="http"
+        Url="www.charlesproxy.com"
+        Port=""
+        Path="/assets/release/3.9.3/charles-proxy-3.9.3-win64.msi"
+        Query=""
+        Nature="msi"
+        />
+
+    <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+    <!--  FLASH PLAYER INSTALLERS -->
+    <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+    <Installer
+        Name="Flash Player 16 Content Debugger Active X"
+        LocalFile="flashplayer_16_ax_debug.exe"
+        Protocol="http"
+        Nature="exe"
+        Url="download.macromedia.com"
+        Port=""
+        Path="/pub/flashplayer/updaters/16/flashplayer_16_ax_debug.exe"
+        Query=""
+        />
+
+    <Installer
+        Name="Flash Player 16 Content Debugger (FireFox) NPAPI"
+        LocalFile="flashplayer_16_ax_debug.exe"
+        Protocol="http"
+        Url="download.macromedia.com"
+        Port=""
+        Path="/pub/flashplayer/updaters/16/flashplayer_16_plugin_debug.exe"
+        Query=""
+        Nature="exe"
+        />
+
+     <Installer
+        Name="Flash Player 16 Content Debugger (Chrome / Opera) PPAPI"
+        LocalFile="flashplayer_16_ax_debug.exe"
+        Protocol="http"
+        Url="download.macromedia.com"
+        Port=""
+        Path="/pub/flashplayer/updaters/16/flashplayer_16_ppapi_debug.exe"
+        Query=""
+        Nature="exe"
+        />
+        
+        
+    <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+    <!--  EXTRAS -->
+    <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+    <!-- Skype -->
+    <Installer
+        Name="Skype Desktop for Windows 64"
+        LocalFile="SkypeSetup.exe"
+        Protocol="http"
+        Url="download.skype.com"
+        Port=""
+        Path="/325c4af68d6b04ac77426bf5318ebf57/SkypeSetup.exe"
+        Nature="exe"
+    />
+    
+    <!-- F.lux Monitor Controller -->
+     <Installer
+        Name="F.lux"
+        LocalFile="flux-setup.exe"
+        Protocol="https"
+        Url="justgetflux.com"
+        Port=""
+        Path="/flux-setup.exe"
+        Nature="exe"
+    />
+</Downloads>

@@ -1,0 +1,1 @@
+powershell -executionpolicy remotesigned -File workspace_setup.ps1 -RunMode 0
