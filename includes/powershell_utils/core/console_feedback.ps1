@@ -7,6 +7,56 @@ if($includes_console_feedback_ps1 -ne $true)
 {
     Set-Variable includes_console_feedback_ps1  -option Constant -Scope Global      -value $true
     
+    
+    # Logging Level Enumeration
+    $LogLevel = New-Object psobject @{
+        Error   = 0
+        Warn    = 1
+        Fail    = 2
+        Verbose = 3
+        Debug   = 4
+        Success = 5
+        Info    = 6
+    }
+    
+    function Get-LogLevel-String([int]$Level){
+    
+        $retVal = "INFO"
+        
+        switch($Level)
+        {
+            {$_ -eq $LogLevel.Error}{
+                $retVal = "ERROR"
+            }
+            {$_ -eq $LogLevel.Warn}{
+                $retVal = "WARN"
+            }
+            {$_ -eq $LogLevel.Fail}{
+                $retVal = "FAIL"
+            }
+            {$_ -eq $LogLevel.Verbose}{
+                $retVal = ""
+            }
+            {$_ -eq $LogLevel.Debug}{
+                $retVal = ""
+            }
+            {$_ -eq $LogLevel.Success}{
+                $retVal = "SUCCESS"
+            }
+            {$_ -eq $LogLevel.Info}{
+                $retVal = "INFO"
+            }
+            default{
+                $retVal = "INFO"
+            }
+        }
+        
+        $retVal
+    }
+    
+    
+    
+    Set-Variable LOG_LEVEL          -Option Constant    -Scope Global   -Value $LogLevel
    
     # Global Constants
     Set-Variable PROMPT_TIMEOUT         -option Constant    -Scope Global      -value -1
@@ -123,6 +173,53 @@ if($includes_console_feedback_ps1 -ne $true)
         }
     }
     
+    function Log-Message
+    {
+        param(
+            [Parameter(Mandatory=$true,ValueFromPipeline=$true)]
+            [string]$Message,
+            
+            [Parameter(Mandatory=$false,ValueFromPipeline=$true)]
+            [int]$Level=$global:LOG_LEVEL.Info,
+            
+            [Parameter(Mandatory=$false)]
+            [switch]$WriteToLog
+        )
+            
+        $LevelStr       = Get-LogLevel-String($Level);
+        
+        $Message        = "[$LevelStr] $Message"
+        if( $global:LOGGER_LEVEL -ge $Level)
+        {
+            switch($Level)
+            {
+                {$_ -eq $global:LOG_LEVEL.Verbose}{
+                    Write-Verbose $Message
+                }
+                {$_ -eq $global:LOG_LEVEL.Debug}{
+                    Write-Debug $Message
+                }
+                {$_ -gt $global:LOG_LEVEL.Debug}
+                {
+                    Write-Host $Message -foregroundcolor "DarkCyan"
+                }
+                {$_ -eq $global:LOG_LEVEL.Warn}{
+                    Write-Warning $Message
+                }
+                default{
+                    Write-Error $Message
+                }
+            }
+        }
+        
+        # always write to log if specified, even if we supress console output
+        if($WriteToLog){
+            if( Test-Path $global:POWERSHELL_UTILS_LOG_FILE ){
+                $c = Add-Content $global:POWERSHELL_UTILS_LOG_FILE "`n$Message"
+            }
+        }
+    }
+    
     function Write-Headline
     {
         param(
@@ -136,41 +233,22 @@ if($includes_console_feedback_ps1 -ne $true)
             [switch]$WriteToLog
         )
         
+        $headlineStr =  "-".PadRight($Message.Length, "-")
+        
         if($WriteToLog){
-            Write-Console -Message "-------------------------------------------------------------" -Color $Color -WriteToLog
-            Write-Console -Message ( Pad-String -string $Message -length 128 -padType 'right' )    -Color $Color -WriteToLog
-            Write-Console -Message "-------------------------------------------------------------" -Color $Color -WriteToLog
+            
+            Write-Console -Message $headlineStr -Color $Color -WriteToLog
+            Write-Console -Message $Message -Color $Color -WriteToLog
+            Write-Console -Message $headlineStr -Color $Color -WriteToLog
         }
         else{
-            Write-Console -Message "-------------------------------------------------------------" -Color $Color
-            Write-Console -Message ( Pad-String -string $Message -length 128 -padType 'right' )     
-            Write-Console -Message "-------------------------------------------------------------" -Color $Color
+            
+            Write-Console -Message $headlineStr -Color $Color
+            Write-Console -Message  $Message -Color $Color     
+            Write-Console -Message $headlineStr -Color $Color
         }
     }
 
-    function Write-Console2
-    {
-        param(
-            [Parameter(Mandatory=$true)]
-            [string]$Message,
-            
-            [Parameter(Mandatory=$false)]
-            [string]$Color=$WHITE,
-            
-            [Parameter(Mandatory=$false)]
-            [switch]$WriteToLog,
-            
-            [Parameter(Mandatory=$false)]
-            [bool]$Ticker=$false,
-            
-            [Parameter(Mandatory=$false)]
-            [int]$TickInterval=5
-        )
-        $dbg = subst
-        Write-Host "SUBST $dbg"
-        Write-Host $Message -foregroundcolor $Color
-    
-    }
     function Write-Console
     {
         param(
@@ -265,19 +343,19 @@ if($includes_console_feedback_ps1 -ne $true)
 
         if( PromptResult-IsNegativeResponse -Response $Response ){
             if($Response -eq $PROMPT_TIMEOUT ){
-                Write-Console -Message $PROMPT_MSG_TIMEOUT -Color $PROMPT_RESPONSE_NEG_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+                Log-Message -Message $PROMPT_MSG_TIMEOUT -Level $global:LOG_LEVEL.Warn -WriteToLog
             }
             elseif($Response -eq $PROMPT_CANCEL){
-                Write-Console -Message $PROMPT_MSG_CANCEL -Color $PROMPT_RESPONSE_NEG_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+                Log-Message -Message $PROMPT_MSG_CANCEL -Level $global:LOG_LEVEL.Warn  -WriteToLog
             }
             elseif($Response -eq $PROMPT_ABORT ){
-                Write-Console -Message $PROMPT_MSG_CANCEL -Color $PROMPT_RESPONSE_NEG_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+                Log-Message -Message $PROMPT_MSG_CANCEL  -Level $global:LOG_LEVEL.Warn -WriteToLog
             }
             elseif($Response -eq $PROMPT_IGNORE){
-                Write-Console -Message $PROMPT_MSG_IGNORE -Color $PROMPT_RESPONSE_NEG_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+                Log-Message -Message $PROMPT_MSG_IGNORE -Level $global:LOG_LEVEL.Warn   -WriteToLog
             }
             elseif($Response -eq $PROMPT_NO){
-                Write-Console -Message $PROMPT_MSG_NO -Color $PROMPT_RESPONSE_NEG_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+                Log-Message -Message $PROMPT_MSG_NO  -Level $global:LOG_LEVEL.Warn  -WriteToLog
             }
             
             if($SleepOnNegative -gt 0){
@@ -294,19 +372,19 @@ if($includes_console_feedback_ps1 -ne $true)
             $result = $PROCEED
 
             if($Response -eq $PROMPT_OK ){
-                Write-Console -Message $PROMPT_MSG_OK -Color $PROMPT_RESPONSE_POS_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+                Log-Message -Message $PROMPT_MSG_OK  -Level $global:LOG_LEVEL.Verbose  -WriteToLog
             }
             elseif($Response -eq $PROMPT_RETRY){
-                Write-Console -Message $PROMPT_MSG_RETRY -Color $PROMPT_RESPONSE_POS_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+                Log-Message -Message $PROMPT_MSG_RETRY -Level $global:LOG_LEVEL.Verbose  -WriteToLog
             }
             elseif($Response -eq $PROMPT_YES ){
-               Write-Console -Message $PROMPT_MSG_YES -Color $PROMPT_RESPONSE_POS_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+               Log-Message -Message $PROMPT_MSG_YES -Level $global:LOG_LEVEL.Verbose  -WriteToLog
             }
             elseif($Response -eq $PROMPT_TRYAGAIN){
-                Write-Console -Message $PROMPT_MSG_TRYAGAIN -Color $PROMPT_RESPONSE_POS_COLOR -Ticker $true -TickInterval 3 -WriteToLog
+                Log-Message -Message $PROMPT_MSG_TRYAGAIN -Level $global:LOG_LEVEL.Verbose  -WriteToLog
             }
             elseif($Response -eq $PROMPT_CONTINUE){
-                Write-Console -Message $PROMPT_MSG_CONTINUE -Color $PROMPT_RESPONSE_POS_COLOR -Ticker $true -TickInterval 3  -WriteToLog
+                Log-Message -Message $PROMPT_MSG_CONTINUE  -Level $global:LOG_LEVEL.Verbose  -WriteToLog
             }
             
             if($SleepOnPositive -gt 0){
@@ -391,8 +469,6 @@ if($includes_console_feedback_ps1 -ne $true)
     else{
         Write-Warning "Logging Directory Not Defined"
     }
-    
-    Write-Console -Message "[core.console_feedback] Library Script Included." -Color $MAGENTA
 }
 
 

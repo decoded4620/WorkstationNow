@@ -67,46 +67,51 @@ function Remap-Drive
         
         if($MappingConfiguration.DeleteCurrentSubstMapping -eq $true){
             
-            Write-Console -Message "[Remap-Drive] Clear old mapping  $($MappingConfiguration.VirtualDriveLetter)" -Color $COLOR_MSG_PROGRESS -WriteToLog
-            
-            Get-Invoke-Expression-Result -Expression ( "subst $($MappingConfiguration.VirtualDriveLetter): /D" ) -PrintResult
-            
-            # subst "$($MappingConfiguration.VirtualDriveLetter):" '/D'
+            if( (Drive-Exists -DriveLetter $MappingConfiguration.VirtualDriveLetter)) {
+                Log-Message -Message "[Remap-Drive] Clear old mapping  $($MappingConfiguration.VirtualDriveLetter)" -Level $global:LOG_LEVEL.Info -WriteToLog
+                Get-Invoke-Expression-Result -Expression ( "subst $($MappingConfiguration.VirtualDriveLetter): /D" ) -PrintResult
+            }
         }
         else
         {
             if($MappingConfiguration.ReplaceExistingDriveMapping -eq $true){
-                Write-Console -Message "[Remap-Drive] Replace existing mapping  $($MappingConfiguration.VirtualDriveLetter)" -Color $COLOR_MSG_PROGRESS -WriteToLog
-                
-                Get-Invoke-Expression-Result -Expression ( "subst $($MappingConfiguration.VirtualDriveLetter): /D" ) -PrintResult
-                
-                # subst "$($MappingConfiguration.VirtualDriveLetter):" '/D'
+            
+                if( (Drive-Exists -DriveLetter $MappingConfiguration.VirtualDriveLetter)) {
+                    Log-Message -Message "[Remap-Drive] Replace existing mapping  $($MappingConfiguration.VirtualDriveLetter)" -Level $global:LOG_LEVEL.Info -WriteToLog
+                    Get-Invoke-Expression-Result -Expression ( "subst $($MappingConfiguration.VirtualDriveLetter): /D" ) -PrintResult
+                }
             }
 
-           Write-Console -Message "[Remap-Drive] Set New Mapping [ $($MappingConfiguration.VirtualDriveLetter) => $($MappingConfiguration.VirtualDriveLocation)]" -Color $COLOR_MSG_ITEM_COMPLETE
+           Log-Message -Message "[Remap-Drive] Set New Mapping [ $($MappingConfiguration.VirtualDriveLetter) => $($MappingConfiguration.VirtualDriveLocation)]" -Level $global:LOG_LEVEL.Info -WriteToLog
            Get-Invoke-Expression-Result -Expression ("subst $($MappingConfiguration.VirtualDriveLetter): $($MappingConfiguration.VirtualDriveLocation)") -PrintResult
-           
-           # subst "$($MappingConfiguration.VirtualDriveLetter):" "$($MappingConfiguration.VirtualDriveLocation):/"
+        }
+        
+        if( (Drive-Exists -DriveLetter $MappingConfiguration.VirtualDriveLetter)) {
+                $MappingConfiguration.Status = $global:SUCCESS
+        }
+        else{
+            $MappingConfiguration.Status = $global:FAIL
         }
     }
     else{
-        Write-Error "Config was null"
+        $MappingConfiguration.Status = $global:FAIL
+        Log-Message -Message "Mapping Configuration was NULL" -Level $global:LOG_LEVEL.Error -WriteToLog
     }
 }
 
 function SetReadWritePriviledges([string]$Path)
 {
     # Create a'Read Write' FileSystemAccessRule for the current user
-    $colRights = [System.Security.AccessControl.FileSystemRights]"Read, Write" 
+    $colRights          = [System.Security.AccessControl.FileSystemRights]"Read, Write" 
 
-    $InheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::None 
-    $PropagationFlag = [System.Security.AccessControl.PropagationFlags]::None 
+    $InheritanceFlag    = [System.Security.AccessControl.InheritanceFlags]::None 
+    $PropagationFlag    = [System.Security.AccessControl.PropagationFlags]::None 
 
-    $objType =[System.Security.AccessControl.AccessControlType]::Allow 
+    $objType            =[System.Security.AccessControl.AccessControlType]::Allow 
 
     $accountStr = "$($env:USERGROUP)\$($env:USERNAME)";
     
-    Write-Console -Message "[SetReadWritePriviledges] $Path for $accountStr" -Color $COLOR_MSG_PROGRESS
+    Log-Message -Message "[SetReadWritePriviledges] $Path for $accountStr" -Level $global:LOG_LEVEL.Info -WriteToLog
     $objUser = New-Object System.Security.Principal.NTAccount($accountStr)
 
     $objACE = New-Object System.Security.AccessControl.FileSystemAccessRule `
@@ -122,7 +127,7 @@ function SetReadWritePriviledges([string]$Path)
 function Recycle-Item( [string] $Path  )
 {
     $result = $false
-    Write-Console -Message "[Recycle-Item]$Path" -Color $COLOR_MSG_WARN
+    Log-Message -Message "[Recycle-Item]$Path" -Level $global:LOG_LEVEL.Info -WriteToLog
 
 
     $item = $global:APPLICATION.Namespace(0).ParseName("$Path")
@@ -134,7 +139,7 @@ function Recycle-Item( [string] $Path  )
         
     }
     
-    Write-Console ("[Recycle-Item] Result $result, Path $Path")
+    Log-Message -Message "[Recycle-Item] Result $result, Path $Path" -Level $global:LOG_LEVEL.Info -WriteToLog
     $result
 }
 
@@ -177,6 +182,17 @@ function Directory-Exists
     )
     Test-Path "$File" -pathType container
 }
+
+function Drive-Exists
+{
+    param(
+        [Parameter(Mandatory=$true)]
+        [char]$DriveLetter
+    )
+    Test-Path "$DriveLetter:/" -pathType container
+}
+
+
 #############################################################################################################################
 # Drive Mapping Configuration
 #############################################################################################################################
@@ -246,6 +262,7 @@ function New-DriveMappingConfiguration {
         VirtualDriveLetter              = $VirtualDriveLetter
         DeleteExistingDriveMapping      = $DeleteExistingDriveMapping
         ReplaceExistingDriveMapping     = $ReplaceExistingDriveMapping
+        Status                          = $global:STATUS_UNKNOWN
     }
 }
 #############################################################################################################################
@@ -265,14 +282,11 @@ function New-DriveMappingConfiguration {
 .EXAMPLE
 
 #>
-function Configure-Drive-Mapping()
+function Configure-Drive-Mapping
 {
     param(
         [Parameter(Mandatory=$true)]
-        [xml]$XML,
-        
-        [Parameter(Mandatory=$true)]
-        [string]$xPath,
+        [psobject]$MappingConfiguration,
         
         [Parameter(Mandatory=$true)]
         [string]$WorkspaceRoot,
@@ -280,19 +294,11 @@ function Configure-Drive-Mapping()
         [Parameter(Mandatory=$false)]
         [bool]$Prompt = $false
     )
-    
-    Write-Console -Message "[Configure-Drive-Mapping] => $xPath [$WorkspaceRoot]" -Color $COLOR_MSG_PROGRESS
-    
-    $DriveMapping           = $XML.SelectSingleNode($xPath);
-    $Location               = Get-Location
-    $CurrentDrive           = "" + $Location.Drive.Name
-    
-    $MappingConfiguration   = ( New-DriveMappingConfiguration                                                               `
-                                    -VirtualDriveLocation $WorkspaceRoot                                                        `
-                                    -VirtualDriveLetter $DriveMapping.virtualDriveLetter                              `
-                                    -ReplaceExistingDriveMapping ( $DriveMapping.replaceExisting -eq 'true')    `
-                                    -DeleteExistingDriveMapping ( $DriveMapping.deleteExisting -eq 'true') )
 
+    Write-Console -Message "[Configure-Drive-Mapping] => $xPath [$WorkspaceRoot]" -Color $COLOR_MSG_PROGRESS
+
+    $MappingConfiguration.Status = $global:STATUS_PENDING
+    
     $proceedOrHalt = $global:PROCEED
     
     if( $Prompt ) {
@@ -303,26 +309,22 @@ function Configure-Drive-Mapping()
         $proceedOrHalt = PromptResult-ProceedOrHalt `
                             -Response ( `
                                 Show-Alert `
-                                    -Message "Set Drive Mapping for Drive $CurrentDrive To $($DriveMapping.VirtualDriveLetter)?" `
-                                    -Title "Workspace Setup" `
+                                    -Message "Setup Virtual Hard-Drive $($DriveMapping.VirtualDriveLetter) to location $($WorkspaceRoot)?" `
+                                    -Title "Create Virtual Hard-Drive" `
                                     -DialogType 0x4 )
     }
     
     if($proceedOrHalt -eq $global:PROCEED ){
-        
        # $MappingConfigurations.Add($MappingConfiguration)
         
         # Perform the Substitute using the configuration
-        Write-Headline -Message "[Configure-Drive-Mapping]" -Color $COLOR_MSG_ITEM_COMPLETE
+
         Remap-Drive -MappingConfiguration $MappingConfiguration
-        $MappingConfiguration
-        
+
+        Write-Headline -Message "[Configure-Drive-Mapping] $($MappingConfiguration.VirtualDriveLetter) => $($MappingConfiguration.VirtualDriveLocation) Status: $($MappingConfiguration.Status)" -Color $COLOR_MSG_ITEM_COMPLETE
     }
     else{
         Write-Console -Message "[Configure-Drive-Mapping] Drive Not Remapped $($MappingConfiguration.VirtualDriveLocation)" -Color $COLOR_MSG_ERROR
-        $MappingConfiguration
+        $MappingConfiguration.Status = $global:NOT_AUTHORIZED
     }
 }
-
-#############################################################################################################################
-Write-Console -Message "[core.filesystem] Library Script Included" -Color $MAGENTA

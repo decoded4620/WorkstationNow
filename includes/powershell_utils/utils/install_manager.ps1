@@ -164,6 +164,9 @@ function Install ( [System.Collections.ArrayList]$List )
                     Write-Console -Message "Process starting $extractTo/$InstallerFile" -Color $COLOR_MSG_JOB_START
                     $ProcessDesc = Start-Process -FilePath "$jobDestination" -Wait -Passthru
                 }
+                elseif( $Nature -eq 'iso'){
+                    Write-Console -Message "Storing ISO file, will need to be installed via Virtual Machine Software" -Color $COLOR_MSG_JOB_START
+                }
                 else{
                     Write-Console -Message "Warning nature not specified for $jobDestination" -Color $COLOR_MSG_ERROR
                 }

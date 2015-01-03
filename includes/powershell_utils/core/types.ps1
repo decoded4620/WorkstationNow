@@ -1,21 +1,28 @@
 if($types_ps1_included -ne $true)
 {
     # Insure this runs ONLY one time by setting this to be 'constant'
-    Set-Variable types_ps1_included -option Constant   -Scope Global    -value $true
+    Set-Variable types_ps1_included -option Constant    -Scope Global    -value $true
     
     # Shell Session Global Reference
-    Set-Variable SHELL              -Option Constant -Scope Global      -value (New-Object -ComObject Wscript.Shell)
+    Set-Variable SHELL              -Option Constant    -Scope Global   -value (New-Object -ComObject Wscript.Shell)
     
     # The Application Global Reference
-    Set-Variable APPLICATION        -Option Constant -Scope Global      -value (New-Object -ComObject Shell.Application)
+    Set-Variable APPLICATION        -Option Constant    -Scope Global   -value (New-Object -ComObject Shell.Application)
 
+    # Various Common 'Status' Values
+    Set-Variable STATUS_UNKNOWN     -Option Constant    -Scope Global   -value -1;
+    Set-Variable FAIL               -Option Constant    -Scope Global   -value 0;
+    Set-Variable SUCCESS            -Option Constant    -Scope Global   -value 1;
+    Set-Variable STATUS_PENDING     -Option Constant    -Scope Global   -value 2;
+    Set-Variable NOT_AUTHORIZED     -Option Constant    -Scope Global   -value 40;
+    
     # Prompt Action Values
     Set-Variable PROCEED            -Option Constant    -Scope Global   -value 1;
     Set-Variable HALT               -Option Constant    -Scope Global   -value 0;
 
     # Modes
-    Set-Variable MODE_APPEND        -Option Constant    -Scope Global   -value 0
-    Set-Variable MODE_OVERWRITE     -Option Constant    -Scope Global   -value 1
+    Set-Variable MODE_APPEND        -Option Constant    -Scope Global   -value 0;
+    Set-Variable MODE_OVERWRITE     -Option Constant    -Scope Global   -value 1;
     
     # Console Colors
     Set-Variable BLACK              -Option Constant    -Scope Global   -Value "Black"
@@ -65,10 +72,10 @@ if($types_ps1_included -ne $true)
                 if((Get-Member -Name $_ -InputObject $InputObject) -eq $null ){
                     if($validate -eq $true){
                         $validationReason = "One or more properties were missing or incorrect"
-                        Write-Host "**Validation Failed** `r $Properties`r$InputObject" -foregroundcolor $COLOR_MSG_ERROR -WriteToLog
+                        Write-Error "**Validation Failed** `r $Properties`r$InputObject"
                     }
 
-                    Write-Host "    Missing Property: $_" -foregroundcolor $COLOR_MSG_ERROR -WriteToLog
+                    Write-Console -Message "Missing Property: $_" -Color $COLOR_MSG_ERROR -WriteToLog
                     $validated = $false;
                 }
             }
@@ -83,5 +90,3 @@ else
 {
     Write-Host "Types Already Included, definitions protected from double inclusion" -foregroundcolor $global:RED
 }
-
-Write-Host "[core.types] Types Included" -foregroundcolor $global:MAGENTA

@@ -1,12 +1,12 @@
-Write-Host "---------------------------------------------------------------------------" -foregroundcolor "Magenta"
-Write-Host "PowerShell Utils Version 1.0"                                                -foregroundcolor "Magenta"
-Write-Host "Author Bow M Archer"                                                         -foregroundcolor "Magenta"
-Write-Host "Copyright, All Rights Reserved 2014"                                         -foregroundcolor "Magenta"
-Write-Host "---------------------------------------------------------------------------" -foregroundcolor "Magenta"
-Write-Host "POWERSHELL_UTILS_HOME               $POWERSHELL_UTILS_HOME"         -foregroundcolor "Magenta"
-Write-Host "POWERSHELL_UTILS_WORKING_DIR        $POWERSHELL_UTILS_WORKING_DIR"  -foregroundcolor "Magenta"
-Write-Host "POWERSHELL_UTILS_LOG_DIR            $POWERSHELL_UTILS_LOG_DIR"      -foregroundcolor "Magenta"
-Write-Host "POWERSHELL_UTILS_LOG_FILE           $POWERSHELL_UTILS_LOG_FILE"     -foregroundcolor "Magenta"
+Write-Host "---------------------------------------------------------------------------" -foregroundcolor "DarkCyan"
+Write-Host "PowerShell Utils Version 1.0"                                                -foregroundcolor "DarkCyan"
+Write-Host "Author Bow M Archer"                                                         -foregroundcolor "DarkCyan"
+Write-Host "Copyright, All Rights Reserved 2014"                                         -foregroundcolor "DarkCyan"
+Write-Host "---------------------------------------------------------------------------" -foregroundcolor "DarkCyan"
+Write-Host "POWERSHELL_UTILS_HOME               $POWERSHELL_UTILS_HOME"         -foregroundcolor "DarkCyan"
+Write-Host "POWERSHELL_UTILS_WORKING_DIR        $POWERSHELL_UTILS_WORKING_DIR"  -foregroundcolor "DarkCyan"
+Write-Host "POWERSHELL_UTILS_LOG_DIR            $POWERSHELL_UTILS_LOG_DIR"      -foregroundcolor "DarkCyan"
+Write-Host "POWERSHELL_UTILS_LOG_FILE           $POWERSHELL_UTILS_LOG_FILE"     -foregroundcolor "DarkCyan"
 
 ########################################
 # LOW LEVEL SCRIPTS

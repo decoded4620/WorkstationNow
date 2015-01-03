@@ -13,9 +13,6 @@ function Is-EnvironmentVariableConfiguration
     $validated
 }
 
-Write-Host "Defined Is-EnvironmentVariableConfiguration"
-
-
 function New-EnvironmentVariableConfiguration () {
     param(
         [Parameter(Mandatory=$true)]
@@ -53,8 +50,6 @@ function New-EnvironmentVariableConfiguration () {
         AllowDuplicateAppend    = $AllowDuplicateAppend
     }
 }
-
-Write-Host "Defined New-EnvironmentVariableConfiguration"
 
 #############################################################################################################################
 <#
@@ -188,8 +183,6 @@ function Set-Environment-Variable{
     }
 }
 
-Write-Host "Defined Set-Environment-Variable"
-
 
 #############################################################################################################################
 <#
@@ -214,7 +207,3 @@ function Get-Environment-Variable([string]$Name, [string]$Level )
     
     return $retVal
 }
-
-Write-Host "Defined Get-Environment-Variable"
-
-Write-Console -Message "[core.environment] Library Script Included." -Color $MAGENTA

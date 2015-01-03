@@ -15,18 +15,13 @@ function Join-ArrayList
     $cnt = $ArrayList.Count
     for($i = 0; $i -lt $cnt; ++$i)
     {
-        if($i -gt 0){
-            $retVal += $sepVal
-        }
+        if($i -gt 0)                    {  $retVal += $sepVal }
         
-        if($ArrayList[$i] -ne $null){
-            $retVal += $ArrayList[$i].ToString()
-        }else{
-            $retVal += "null"
-        }
+        if($ArrayList[$i] -ne $null)    { $retVal += $ArrayList[$i].ToString() }
+        else                            { $retVal += "null" }
     }
     
-    $retVal
+    return $retVal
 }
 
 function Pad-String
@@ -55,69 +50,52 @@ function Pad-String
         $returnString = $padChar
     }
     else{
-        if($string.length -gt $length)
-        {
+        if($string.length -gt $length){
+        
             $hasPostFix = ($postFix -ne $null -and $postFix -ne '')
             
             # TERNARY ASIGNMENT FTW, if we have a postfix, we'll include that in the substring op
             $newLen = @{ $true = $length-$postFix.length;$false = $length }[$hasPostFix]
             
-            if($newLen -lt 1){
-                $newLen = 1
-            }
+            if($newLen -lt 1){ $newLen = 1 }
             
             $string = $string.Substring(0, $newLen) + $postFix
         }
-        else
-        {
+        else{
+        
             $returnString = $string
             
             # avoid infinite loop if needed
-            if($padChar -eq $null -or $padChar -eq ''){
-                $padChar = ' '
-            }
+            if($padChar -eq $null -or $padChar -eq ''){ $padChar = ' ' }
             
             switch($padType)
             {
                 {$_ -eq 'right'}{
                     
-                    while($returnString.length -lt $length){
-                        $returnString += $padChar
-                    }
+                    $returnString = $returnString.PadRight($length, $padChar )
                 }
             
                 {$_ -eq 'left'}{
-                    while($returnString.length -lt $length){
-                        $returnString = $padChar + $returnString
-                    }
+                    $returnString = $returnString.PadLeft($length, $padChar )
                 }
                 
                 {$_ -eq 'center' -or $_ -eq 'middle'}{
                     
                     $cnt = 0;
+                    
                     while($returnString.length -lt $length){
-                        if($cnt++ % 2 -eq 0 )
-                        {
-                            $returnString = $padChar + $returnString
-                        }
-                        else
-                        {
-                            $returnString += $padChar
-                        }
+                        if($cnt++ % 2 -eq 0 )   { $returnString = $padChar + $returnString }
+                        else                    { $returnString += $padChar }
                     }
                 }
                 
                 default{
-                    while($returnString.length -lt $length){
-                        $returnString += $padChar
-                    }
+                    while($returnString.length -lt $length) { $returnString += $padChar }
                 }
             }
             
         }
     }
     
-    $returnString
+    return $returnString
 }
-
-Write-Console -Message "[core.strings] Library Script Included." -Color $MAGENTA
