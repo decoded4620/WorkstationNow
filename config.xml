@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<config>
+    <!-- Configuration for all downloaded software -->
+    <downloads_config       url="downloads.xml" />
+    
+    <!-- Configuration for local workstation, including environment variables, virtual drive mappings -->
+    <environment_config     url="env.xml"       />
+    
+    <!-- Local Variables and Values to be passed to Powershell upon startup -->
+    <settings>
+        <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+        <!-- NECESSARY VARIABLES SCRIPT WILL NOT RUN WITHOUT THESE              -->
+        <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+        <!-- Powershell library path -->
+        <setting id="$LibraryPath"          nature="assign"   value="includes\powershell_utils" />
+        
+        <!-- all downloaded software will be placed HERE -->
+        <setting id="$DownloadDirectory"    nature="assign"   value="downloads" />
+        
+        <!-- Logging Configuration -->
+        <setting id="$LoggingDirectory"     nature="assign"   value="log" />
+        <setting id="$LogFile"              nature="assign"   value="log.txt" />
+        <setting id="$LoggerLevel"          nature="assign"   value="6"       />
+        <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+        <!-- END NECESSRARY FILE SECTION ALL OTHER CONFIGURATION IS OPTIONAL -->
+        <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
+        
+        <setting id="$ProgramTitle"         nature="assign"   value="Workstation Now!" />
+        <!-- Internal Powershell variables -->
+        <setting id="$DebugPreference"      nature="assign"   value="Continue" />
+        <setting id="$VerbosePreference"    nature="assign"   value="SilentlyContinue" />
+    </settings>
+    
+    <locale>
+        <strings url="alerts.txt" />
+        <strings url="errors.txt" />
+    </locale>
+    
+    
+    <!-- actions are run in order, after library inclusion, and initial internal setup -->
+    <actions directory="actions">
+    
+        <action hook="setWorkspaceRootDirectory"    url="customActions\setWorkspaceRootDirectory.ps1"/>
+        <action hook="setWorkspaceDriveMapping"     url="customActions\setWorkspaceDriveMapping.ps1"/>
+        <action hook="downloadAndInstallSoftware"   url="customActions\downloadAndInstallSoftware.ps1"/>
+        <action hook="setupPerforceWorkspace"       url="customActions\setupPerforceWorkspace.ps1"/>
+        <action hook="setupEnvironment"             url="customActions\setupEnvironment.ps1"/>
+    </actions>
+</config>
