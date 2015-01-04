@@ -1,6 +1,27 @@
 <?xml version="1.0"?>
-<Downloads DownloadDirectory="/downloads">
+<Downloads>
     <!-- NOTE These are Downloaded in Parallel, however, they are installed in-order, to insure any dependencies are available -->
+    
+    <!-- Installer Properties -->
+    
+    
+    <!-- -->
+    <!-- PERFORCE SOFTWARE -->
+    <Installer
+        Name="Perforce Visual Components"
+        InstalledProgramName="Perforce Visual Components"
+        Description="P4V 2012 64 Bit"
+        LocalFile="p4inst.exe"
+        Protocol="http"
+        Url="cdist2.perforce.com"
+        Port=""
+        Path="/perforce/r14.2/bin.ntx64/p4vinst64.exe"
+        Query=""
+        Nature="exe"
+        >
+    </Installer>
+    
+    
     
     <!-- Ubuntu Image -->
     <Installer
@@ -16,7 +37,8 @@
         
     <!-- Oracle VirtualBox -->
     <Installer
-        Name="Oracle VirtualBox 4.3.20"
+        Name="Oracle VirtualBox VM"
+        InstalledProgramName="Oracle VM VirtualBox 4.3.20"
         LocalFile="VirtualBox-4.3.20-96997-Win.exe"
         Protocol="http"
         Url="dlc-cdn.sun.com"
@@ -28,7 +50,8 @@
        
     <!-- BASE TEXT EDITOR / CODING IDE -->
     <Installer 
-        Name="Notepad ++" 
+        Name="Notepad++" 
+        InstalledProgramName="Notepad ++"
         LocalFile="npp.6.7.Installer.exe" 
         Protocol="http"
         Url="download.tuxfamily.org"
@@ -38,9 +61,26 @@
         Nature="exe"
         />
 
+    <!-- Win Merge SOFTWARE -->
+    <Installer
+        Name="Win Merge (v2.14)"
+        InstalledProgramName="WinMerge 2.14.0"
+        LocalFile="WinMerge-2.14.0-Setup.exe"
+        Protocol="http"
+        Url="tcpdiag.dl.sourceforge.net"
+        Port=""
+        Path="/project/winmerge/stable/2.14.0/WinMerge-2.14.0-Setup.exe"
+        Query=""
+        Nature="exe"
+        ScriptHook="installerScripts/install_winmerge.ps1"
+        ScriptHookStart="Install-WinMerge"
+        >
+    </Installer>
+    
     <!-- POWERSHELL SOFTWARE -->
     <Installer
         Name="Powershell Community Extensions"
+        InstalledProgramName="PowerShell Community Extensions 3.2.0"
         LocalFile="pscx.msi"
         Protocol="win-share" 
         Url="\\VIKING\Server\software\Pscx-3.2.0.msi"
@@ -52,7 +92,7 @@
 
     <Installer
         Name="GitHub Desktop For Windows"
-        LocalFile="p4inst.exe"
+        LocalFile="GithubSetup.exe"
         Protocol="https"
         Url="github-windows.s3.amazonaws.com"
         Port=""
@@ -61,18 +101,6 @@
         Nature="exe"
         />
         
-    <!-- PERFORCE SOFTWARE -->
-    <Installer
-        Name="P4V 64-Bit"
-        LocalFile="p4inst.exe"
-        Protocol="http"
-        Url="cdist2.perforce.com"
-        Port=""
-        Path="/perforce/r14.2/bin.ntx64/p4vinst64.exe"
-        Query=""
-        Nature="exe"
-        />
-    
     <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
     <!--  WORKSPACE TOOLS -->
     <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
@@ -92,6 +120,8 @@
     
     <Installer
         Name="Java 7 SDK"
+        InstalledProgramName="Java SE Development Kit 7"
+        InstalledNameCheckExactMatch="false"
         LocalFile="jdk-7u71-windows-x64.exe"
         Protocol="win-share"
         Url="\\VIKING\Server\software\jdk-7u71-windows-x64.exe"
@@ -135,6 +165,8 @@
 
     <Installer
         Name="FireFox Developer Edition"
+        InstalledProgramName="FireFox Developer Edition"
+        InstalledNameCheckExactMatch="false"
         LocalFile="FireFoxDeveloper.exe"
         Protocol="https"
         Url="download-installer.cdn.mozilla.net"
@@ -157,6 +189,7 @@
 
     <Installer 
         Name="Charles Web Proxy"
+        InstalledProgramName="Charles 3.9.3"
         LocalFile="charles-proxy-3.9.3-win64.msi"
         Protocol="http"
         Url="www.charlesproxy.com"
@@ -182,6 +215,7 @@
 
     <Installer
         Name="Flash Player 16 Content Debugger (FireFox) NPAPI"
+        InstalledProgramName="Adobe Flash Player 16 NPAPI"
         LocalFile="flashplayer_16_ax_debug.exe"
         Protocol="http"
         Url="download.macromedia.com"
@@ -193,6 +227,7 @@
 
      <Installer
         Name="Flash Player 16 Content Debugger (Chrome / Opera) PPAPI"
+        InstalledProgramName="Adobe Flash Player 16 PPAPI"
         LocalFile="flashplayer_16_ax_debug.exe"
         Protocol="http"
         Url="download.macromedia.com"
@@ -209,6 +244,8 @@
     <!-- Skype -->
     <Installer
         Name="Skype Desktop for Windows 64"
+        InstalledProgramName="Skype"
+        InstalledNameCheckExactMatch="false"
         LocalFile="SkypeSetup.exe"
         Protocol="http"
         Url="download.skype.com"
@@ -220,6 +257,7 @@
     <!-- F.lux Monitor Controller -->
      <Installer
         Name="F.lux"
+        InstalledProgramName="f.lux"
         LocalFile="flux-setup.exe"
         Protocol="https"
         Url="justgetflux.com"

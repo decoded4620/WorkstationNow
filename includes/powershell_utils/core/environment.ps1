@@ -92,12 +92,12 @@ function Set-Environment-Variable{
         [bool]$AppendToCurrentValue=$false,
         
         [Parameter(Mandatory=$false)]
-        [bool]$AllowDuplicateAppend=$true
+        [bool]$AllowDuplicateAppend=$true,
+        
+        [Parameter(Mandatory=$false)]
+        [switch]$AsJob
     )
-    # Get the current Value, if any
-    $CurrentValue = [Environment]::GetEnvironmentVariable($Name, $Level)
 
-    # if there is no default value, we must ask for a path from the user
     if($Prompt)
     {
         # prompt the user, populate with default
@@ -108,16 +108,14 @@ function Set-Environment-Variable{
                 $message = "Select a Location to append to $Name"
             }
             
-            if((Test-Path $Value -pathType container) -eq $false )
-            {
+            if((Test-Path $Value -pathType container) -eq $false ){
                 $Value = ""
             }
             # for a directory location
             $Value = (Read-FolderBrowserDialog -Message $message -InitialDirectory $Value)
             
         }
-        else
-        {   
+        else{
             $message = "Enter a value for $Name";
             
             if($AppendToCurrentValue){
@@ -130,55 +128,66 @@ function Set-Environment-Variable{
     
     # if they chose a value
     if(![string]::IsNullOrEmpty($Value)){
-    
         $updateLocalEnv = $false
-        # append the final result
-        if($AppendToCurrentValue){
-            if($AllowDuplicateAppend -eq $false){
-                # strip old occurrences and append to the end
-                $Value = $CurrentValue.Replace($Value, "") + $Value;
-            }
-            else
-            {
-                # just append to the end
-                $Value = $CurrentValue + $Value
-            }
-        }
-        # overwrite the final result if we aren't already that value
         
-        if($CurrentValue -ne $Value){
-            [Environment]::SetEnvironmentVariable($Name, $Value, $Level)
+        # overwrite the final result if we aren't already that value
+        $BusinessLogic = {
+        
+            # Get the current Value, if any
+            $CurrentValue = [Environment]::GetEnvironmentVariable($Name, $Level)
             
-             # Get the current Value, if any
-            $NewCurrentValue = [Environment]::GetEnvironmentVariable($Name, $Level)
- 
-           
+            # append the final result
+            if($AppendToCurrentValue){
             
-            if($NewCurrentValue -ne $Value ){
-                Write-Warning "Update Complete, values don't match! $CurrentValue !=  $NewCurrentValue"
+                if($AllowDuplicateAppend -eq $false){
+                    # strip old occurrences and append to the end
+                    $Value = $CurrentValue.Replace($Value, "") + $Value;
+                }
+                else{
+                    # just append to the end
+                    $Value = $CurrentValue + $Value
+                }
+            }
+            
+            if($CurrentValue -ne $Value){
+            
+                Log-Message -Message "[Set-Environment-Variable] $Name = $Value, $Level" -Level $global:LOG_LEVEL.Pending -WriteToLog
+                
+                [Environment]::SetEnvironmentVariable($Name, $Value, $Level)
+                
+                 # Get the current Value, if any
+                $NewCurrentValue = [Environment]::GetEnvironmentVariable($Name, $Level)
+                
+                if($NewCurrentValue -ne $Value ){
+                    Log-Message -Message "[Set-Environment-Variable] Update Complete, values don't match! $Name, $CurrentValue !=  $NewCurrentValue" -Level $global:LOG_LEVEL.Fail -WriteToLog
+                }
+                else{
+                    $updateLocalEnv = $true
+                    Log-Message -Message "[Set-Environment-Variable] $Name = $NewCurrentValue, $Level" -Level $global:LOG_LEVEL.Success -WriteToLog
+                }
+                
+                if($updateLocalEnv){
+                    # Update the shell session as well
+                    $Accessor = '$env:' + $Name
+                    $ScriptBlockStr = $Accessor + '="' + $NewCurrentValue + '"'
+                    
+                    Get-Invoke-Expression-Result -Expression $ScriptBlockStr -PrintResult
+                }
             }
             else{
-                $updateLocalEnv = $true
-            
-                Write-Console -Message "[Set-Environment-Variable] $Name = $NewCurrentValue" -Color $DARKGREEN -WriteToLog
+                $updateLocalEnv = $true;
+                $NewCurrentValue = $CurrentValue;
+                Log-Message -Message "[Set-Environment-Variable] $Name - Not updated, values were equal." -Level $global:LOG_LEVEL.Success -Color $GRAY -WriteToLog
             }
         }
-        else{
         
-            $updateLocalEnv = $true;
-            $NewCurrentValue = $CurrentValue;
-            Write-Console -Message "[Set-Environment-Variable] $Name - Not updated, values were equal." -Color $GRAY -WriteToLog
+        if($AsJob){
+            # run it on a thread
+            $job = start-job -ScriptBlock $BusinessLogic
         }
-        
-        
-        
-        if($updateLocalEnv)
-        {
-            # Update the shell session as well
-            $Accessor = '$env:' + $Name
-            $ScriptBlockStr = $Accessor + '="' + $NewCurrentValue + '"'
-            
-            Get-Invoke-Expression-Result -Expression $ScriptBlockStr -PrintResult
+        else{
+            #just run it
+            & $BusinessLogic
         }
     }
 }

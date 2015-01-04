@@ -16,6 +16,8 @@
 #>
 function setWorkspaceRootDirectory
 {
+    Log-Message -Message "[setWorkspaceRootDirectory] execute" -Level $global:LOG_LEVEL.Info
+    
     # for a directory location
     $global:WorkspaceRootDir = (Read-FolderBrowserDialog -Message "Select a Workspace Root Location" -Title "$ProgramTitle" )
 
@@ -38,12 +40,6 @@ function setWorkspaceRootDirectory
     [string]$level              = 'User'
     [string]$valueType          = 'STRING'
 
-    
-
-    function setVar{
-        # Set our environment variable
-        ( Set-Environment-Variable -Name $WorkspaceRootKey -Value $global:WorkspaceRootDir -Level $level -ValueType $valueType -Prompt $false -AppendToCurrentValue $false )
-    }
-    
-    $j = start-job $function:setVar
+    # Set our environment variable
+    ( Set-Environment-Variable -Name $WorkspaceRootKey -Value $global:WorkspaceRootDir -Level $level -ValueType $valueType -Prompt $false -AppendToCurrentValue $false -AsJob )
 }

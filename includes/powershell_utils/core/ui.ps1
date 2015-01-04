@@ -51,7 +51,7 @@ if($includes_ps1_ui -ne $true)
         # Write-Console -Message "Operation => $Message" -Color $DARKGREEN -WriteToLog
         
         [int]$result = $SHELL.Popup("$Message",$SecondsToWait,"$Title",$DialogType)
-        Write-Debug "Show-Alert $result"
+        Log-Message -Message "[Show-Alert] Result was $result" -Level $global:LOG_LEVEL.Verbose
         return $result
     }
 
@@ -188,5 +188,3 @@ if($includes_ps1_ui -ne $true)
         return $result
     }
 }
-
-Write-Console -Message "[core.ui] Library Script Included." -Color $MAGENTA

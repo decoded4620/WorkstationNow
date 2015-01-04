@@ -111,7 +111,7 @@ else{
 # Initial running directory
 Set-Variable POWERSHELL_UTILS_WORKING_DIR -Option Constant -Scope Global -Value (Get-Location).Path
 Set-Variable WorkspaceRootDir             -Scope Global -Value (Get-Location).Path
-Set-Variable DownloadDirectory            -Scope Global -Value ((Get-Location).Path + "/downloads")
+
 #######################################################################################################################
 # 
 # The powershell utils library path loaded from configuration
@@ -184,37 +184,41 @@ foreach($ActionNode in $ActionsNodeList){
         
         . $actionScriptLocation
         
+        Log-Message -Message "$actionScriptLocation Loaded, hook $($ActionNode.hook)" -Level $global:LOG_LEVEL.Verbose -WriteToLog
+        
         if($ActionNode.hook -ne $null)
         {
             #single word check
             $regex = "\w+" #"^[a-z]+\.[a-z]+@contoso.com$"
             # $regexName = "(^[a-z,A-Z]+\-*)+[a-z,A-Z]+"
             if($ActionNode.hook -notmatch $regex){
-                Write-Error "Hooks must be a single word, a valid function name with no parameters to initialize the script"
+                Log-Message -Message "Hooks must be a single word, a valid function name with no parameters to initialize the script" -Level $global:LOG_LEVEL.Error -WriteToLog
             }
             else{
                 $found = $false
-                Get-Command -CommandType function | % { if($_.Name -eq $ActionNode.hook){ $found = $true}}
+                
+                # find the action hook name
+                Get-Command -CommandType function | % { if($found -eq $false -and $_.Name -eq $ActionNode.hook ){ $found = $true; }}
                 if($found){
-                    Invoke-Expression $ActionNode.hook
+                    Invoke-Expression -Command $ActionNode.hook
                     
                     # remove the custom action, its ONLY a one off, use the force flag to avoid
                     # constant or global 'hacks'
-                    Invoke-Expression "Remove-Item function:$($ActionNode.hook) -force"
+                    Invoke-Expression -Command "Remove-Item function:$($ActionNode.hook) -force"
                     
                 }
                 else{
-                    Write-Error "Initial Method $($ActionNode.hook) could not be executed, please check the hook name for valid format and spelling, and try again"
+                    Log-Message -Message  "Initial Method $($ActionNode.hook) could not be executed, please check the hook name for valid format and spelling, and try again" -Level $global:LOG_LEVEL.Error -WriteToLog
                 }
             }
         }
     }
     else{
-        Log-Message -Message "Action $actionScriptLocation Could not be loaded"
+        Log-Message -Message "Action $actionScriptLocation Could not be loaded" -Level $global:LOG_LEVEL.Error -WriteToLog
     }
 }
 
-Write-Host ""
-Write-Host "Workspace Setup has Completed" -foregroundcolor $COLOR_MSG_JOB_COMPLETE
+
+Write-Console -Message "Workspace Setup has Completed" -Color $COLOR_MSG_JOB_COMPLETE
 
 Get-Invoke-Expression-Result -Expression "cd $POWERSHELL_UTILS_WORKING_DIR" -PrintResult

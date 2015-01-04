@@ -16,6 +16,8 @@
 #>
 function setWorkspaceDriveMapping
 {
+    Log-Message -Message "[setWorkspaceDriveMapping] execute" -Level $global:LOG_LEVEL.Info
+    
     #######################################################################################################################
     # 
     # CREATE COMMON DRIVE MAPPING
@@ -54,14 +56,7 @@ function setWorkspaceDriveMapping
 
             Log-Message -Message "Drive Mapping Succeeded, current directory is $($MappingConfiguration.VirtualDriveLetter)" -Level $global:LOG_LEVEL.Success -WriteToLog
             
-            # change to our new current mapped directory. This way p4 workspace commands will use this mapping
-            # rather than the actual drive letters                  
-            Get-Invoke-Expression-Result                            `
-                -Expression "dir"                  `
-                -Explanation ""  `
-                -PrintResult
-            
-            
+            Get-ChildItem "$($MappingConfiguration.VirtualDriveLetter):\" | %{ Log-Message -Message "`titem discovered: $_" -Level $global:LOG_LEVEL.Verbose -WriteToLog }
         }
         {$_ -eq $global:FAIL}{
             Log-Message -Message "Drive Mapping Failed" -Level $global:LOG_LEVEL.Error -WriteToLog
@@ -81,10 +76,8 @@ function setWorkspaceDriveMapping
     [string]$level              = 'User'
     [string]$valueType          = 'STRING'
 
-    function setVar{
-        # Set our environment variable
-        ( Set-Environment-Variable -Name $WorkspaceRootKey -Value $global:WorkspaceRootDir -Level $level -ValueType $valueType -Prompt $false -AppendToCurrentValue $false )
-    }
-    
-    $j = start-job $function:setVar
+ 
+    # Set our environment variable
+    ( Set-Environment-Variable -Name $WorkspaceRootKey -Value $global:WorkspaceRootDir -Level $level -ValueType $valueType -Prompt $false -AppendToCurrentValue $false -AsJob )
+   
 }

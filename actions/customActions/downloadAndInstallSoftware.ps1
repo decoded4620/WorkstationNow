@@ -81,7 +81,7 @@ function downloadAndInstallSoftware
                 $padded = "Queueing download : $jobName [$jobDestination]".PadRight(156);
                 Write-Console -Message  $padded -Color $COLOR_MSG_ITEM_START -WriteToLog
             }
-            Start-Sleep -m 250
+            Start-Sleep -m 100
         }
         Set-ConsoleWriteMode -WriteMode $global:MODE_APPEND;
         

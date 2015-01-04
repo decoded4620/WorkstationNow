@@ -62,6 +62,56 @@ function New-InstallerConfiguration {
 }
 
 
+function Get-InstalledSoftware(){
+
+    [System.Collections.ArrayList]$InstalledItems = New-Object System.Collections.ArrayList;
+    
+    $ScriptBlock = {
+        
+        if(_$.DisplayName -ne $null){
+         
+            $obj = New-Object psobject @{
+                Name            = $_.DisplayName
+                Version         = $_.DisplayVersion
+                Publisher       = $_.Publisher
+                InstallDate     = $_.DisplayName.InstallDate
+            }
+            
+            $InstalledItems.Add($obj)
+        }
+    }
+    
+    Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Sort-Object DisplayName| % $ScriptBlock
+    Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Sort-Object DisplayName | % $ScriptBlock
+    
+    $InstalledItems
+}
+
+function Is-Installed([string]$InstalledProgramName, [bool]$ExactMatch=$true){
+
+    Log-Message -Message "[Is-Installed]$InstalledProgramName ( ExactMatch $ExactMatch )" -Level $global:LOG_LEVEL.Pending
+     $found = $false;
+    if($ExactMatch){
+        $ScriptBlock = {
+            if($found -eq $false -and $_.Name -eq $InstalledProgramName){
+                $found = $true
+            }
+        }
+        Get-InstalledSoftware | % -Process $ScriptBlock
+    }
+    else{
+        $ScriptBlock = {
+            if($found -eq $false -and $_.Name.IndexOf($InstalledProgramName) -gt -1){
+                $found = $true
+            }
+        }
+        Get-InstalledSoftware | % -Process $ScriptBlock
+    }
+    Log-Message -Message "[Is-Installed]$InstalledProgramName ( ExactMatch $ExactMatch ) Result: $found" -Level $global:LOG_LEVEL.Success
+    $found
+}
+
+
 <#
 .SYNOPSIS
     Perform an Installation, using an Installation Configuration
@@ -98,7 +148,7 @@ function Install ( [System.Collections.ArrayList]$List )
     }
     $List | ForEach-Object -Process $ScriptBlock -End $EndScript -Begin $BeginScript
     
-    $BeginBlock = { Set-ConsoleWriteMode -WriteMode $global:MODE_OVERWRITE }
+    $BeginBlock = { }
     
     # Loop Body Executed for every item in $List
     $ScriptBlock = {
@@ -109,118 +159,174 @@ function Install ( [System.Collections.ArrayList]$List )
             # Configuration DataProvider (XmlNode)
             $DataProvider               = $DownloadRequest.DataProvider
 
+            $alreadyInstalled = $false;
+            
+            if($DataProvider.InstalledProgramName -ne $null){
+                $alreadyInstalled = Is-Installed -InstalledProgramName $DataProvider.InstalledProgramName -ExactMatch ($DataProvider.InstalledNameCheckExactMatch -ne $false)
+            }
+            
             $jobSource                  = $DownloadRequest.Source;
             $jobDestination             = $DownloadRequest.Destination;
             
-            if( Test-Path $jobDestination -pathType leaf)
-            {
-                $jobName                = $DataProvider.Name
-                Write-Console "Installing $jobName in 1 second"
-                Start-Sleep -s 1
+            if( $alreadyInstalled -eq $false ){
+            
+                if( Test-Path $jobDestination -pathType leaf )
+                {
+                    $jobName                = $DataProvider.Name
+                    Log-Message -Message "Installing $jobName in 1 second" -Level $global:LOG_LEVEL.Verbose
+                    Start-Sleep -s 1
 
-                $Nature                 = $DataProvider.Nature
-                $InstallerFile          = $DataProvider.InstallerFile
-                $extractTo              = $DataProvider.ExtractTo
-                $moveTo                 = $DataProvider.MoveTo
-                
-                # For Zip Files, we need to extract and move the contents.
-                if($Nature -eq 'zip'){
-
-                    $jobDestParentDirectory = Get-Parent -Path $jobDestination
-                    SetReadWritePriviledges -Path $jobDestParentDirectory;
+                    $Nature                 = $DataProvider.Nature
+                    $InstallerFile          = $DataProvider.InstallerFile
+                    $extractTo              = $DataProvider.ExtractTo
+                    $moveTo                 = $DataProvider.MoveTo
                     
-                    $unzipDestination = "$jobDestParentDirectory\$extractTo";
-                    $zipResult = Unzip -File $jobDestination -Destination $unzipDestination
+                    # For Zip Files, we need to extract and move the contents.
+                    if($Nature -eq 'zip'){
 
-                    if($zipResult -eq $true)
-                    {
-                        $fileName = Split-Path $unzipDestination -leaf
+                        $jobDestParentDirectory = Get-Parent -Path $jobDestination
+                        SetReadWritePriviledges -Path $jobDestParentDirectory;
                         
-                        $existenceCheckPath = "$moveTo$fileName"
-                        if(Test-Path "$moveTo$fileName"){
-                            Write-Console -Message "Removing old item $fileName => $existenceCheckPath" -Color $COLOR_MSG_WARN
+                        $unzipDestination = "$jobDestParentDirectory\$extractTo";
+                        $zipResult = Unzip -File $jobDestination -Destination $unzipDestination
+
+                        if($zipResult -eq $true)
+                        {
+                            $fileName = Split-Path $unzipDestination -leaf
                             
-                            Recycle-Item($existenceCheckPath)
-                           
+                            $existenceCheckPath = "$moveTo$fileName"
+                            if(Test-Path "$moveTo$fileName"){
+                                Log-Message -Message "Removing old item $fileName => $existenceCheckPath" -Level $global:LOG_LEVEL.Pending -WriteToLog
+                                
+                                $recyled = Recycle-Item($existenceCheckPath)
+                                
+                                if($recyled){
+                                    $lvl = $global:LOG_LEVEL.SUCCESS
+                                }else{
+                                    $lvl = $global:LOG_LEVEL.FAIL
+                                }
+
+                                Log-Message -Message "Item Removed: $recycled" -Level $lvl -WriteToLog
+                            }
+
+                            $expr ='move ' + '"'+ $unzipDestination + '" "' + $moveTo + '"';
                             
+                            Get-Invoke-Expression-Result -Expression $expr -PrintResult
+                            
+                            #  If there is an additional installer file to run, we'll run it
+                            if($InstallerFile -ne '' -and $InstallerFile -ne $null){
+                                Log-Message -Message "Process starting $unzipDestination/$InstallerFile" -Level $global:LOG_LEVEL.Info -WriteToLog
+                                $ProcessDesc = Start-Process -FilePath "$unzipDestination/$InstallerFile" -Wait -Passthru
+                            }
                         }
-
-                        $expr ='move ' + '"'+ $unzipDestination + '" "' + $moveTo + '"';
-                        
-                        Get-Invoke-Expression-Result -Expression $expr -PrintResult
-                        
-                        #  If there is an additional installer file to run, we'll run it
-                        if($InstallerFile -ne '' -and $InstallerFile -ne $null){
-                            Write-Console -Message "Process starting $extractTo/$InstallerFile" -Color $COLOR_MSG_JOB_START
-                            $ProcessDesc = Start-Process -FilePath "$extractTo/$InstallerFile" -Wait -Passthru
+                        else
+                        {
+                            Write-Console "File $jobDestination could not be extracted to $unzipDestination"
                         }
                     }
-                    else
-                    {
-                        Write-Console "File $jobDestination could not be extracted to $unzipDestination"
+                    elseif($Nature -eq 'msi' -or $Nature -eq 'exe'){
+                        Write-Console -Message "Process starting $jobDestination" -Color $COLOR_MSG_JOB_START
+                        $ProcessDesc = Start-Process -FilePath "$jobDestination" -Wait -Passthru
                     }
-                }
-                elseif($Nature -eq 'msi' -or $Nature -eq 'exe'){
-                    Write-Console -Message "Process starting $extractTo/$InstallerFile" -Color $COLOR_MSG_JOB_START
-                    $ProcessDesc = Start-Process -FilePath "$jobDestination" -Wait -Passthru
-                }
-                elseif( $Nature -eq 'iso'){
-                    Write-Console -Message "Storing ISO file, will need to be installed via Virtual Machine Software" -Color $COLOR_MSG_JOB_START
+                    elseif( $Nature -eq 'iso'){
+                        Write-Console -Message "Storing ISO file, will need to be installed via Virtual Machine Software" -Color $COLOR_MSG_JOB_START
+                    }
+                    else{
+                        Write-Console -Message "Warning nature not specified for $jobDestination" -Color $COLOR_MSG_ERROR
+                    }
+
+                    if($DataProvider.Env -ne $null){
+                    
+                        foreach($Variable in $DataProvider.Env.Var){
+                        
+                            Set-Environment-Variable                    `
+                                -Name $Variable.key                     `
+                                -Level $Variable.level                  `
+                                -ValueType $Variable.valueType          `
+                                -Prompt ($Variable.prompt -eq 'true')   `
+                                -AppendToCurrentValue ($Variable.setType -eq 'APPEND') `
+                                -AllowDuplicateAppend ($Variable.allowDuplicateAppend -eq 'true') `
+                                -Value $Variable.defaultValue
+                        }
+                    }
+
+                    # Refresh the Local Path Variable in case it was changed
+                    $newValue = Get-Environment-Variable -Name "Path" -Level "Machine"
+                    
+                    if($env:Path -ne $newValue){
+                        Write-Console -Message "Path Updated to $newValue after installation of $jobName" -Color $COLOR_MSG_ITEM_START -WriteToLog
+                        $env:Path = $newValue;
+                    }
+
+                    if( $DataProvider.ScriptHook -ne $null)
+                    {
+                        $ScriptHookPath = "$($global:POWERSHELL_UTILS_WORKING_DIR)\$($DataProvider.ScriptHook)";
+                        
+                        Log-Message -Message "Include Dynamic Script $ScriptHookPath" -Level $global:LOG_LEVEL.Info -WriteToLog
+                        
+                        if(Test-Path ($ScriptHookPath)){
+                            $ScriptHookPath = Resolve-Path $ScriptHookPath
+                            
+                            # .source the file
+                            . $ScriptHookPath
+                            
+                            if($DataProvider.ScriptHookStart -ne $null){
+                            
+                                Log-Message -Message "Calling Script Method $($DataProvider.ScriptHookStart)" -Level $global:LOG_LEVEL.Info -WriteToLog
+                                #single word check
+                                $regex = "\w+"
+                                
+                                if($DataProvider.ScriptHookStart -notmatch $regex){
+                                    Log-Message -Message "Hooks must be a single word, a valid function name with no parameters to initialize the script" -Level $global:LOG_LEVEL.Error -WriteToLog
+                                }
+                                else{
+                                    $found = $false
+                                    Get-Command -CommandType function | % { if($found -eq $false -and $_.Name -eq $DataProvider.ScriptHookStart){ $found = $true }}
+                                    if($found){
+                                        Invoke-Expression $DataProvider.ScriptHookStart
+                                        
+                                        # remove the custom action, its ONLY a one off, use the force flag to avoid
+                                        # constant or global 'hacks'
+                                        Invoke-Expression "Remove-Item function:$($DataProvider.ScriptHookStart) -force"
+                                        
+                                    }
+                                    else{
+                                        Log-Message -Message "Initial Method $($DataProvider.ScriptHookStart) could not be executed, please check the hook name for valid format and spelling, and try again" -Level $global:LOG_LEVEL.Error -WriteToLog
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            Log-Message -Message "Dynamic Script $ScriptHookPath not found" -Level $global:LOG_LEVEL.Error -WriteToLog
+                        }
+                    }
+                    
+                    if($DataProvider.Commands -ne $null){
+                    
+                        foreach($Command in $DataProvider.Commands.Command){
+                        
+                            if($Command.Value -ne "" -and $Command.Value -ne $null){
+                                Get-Invoke-Expression-Result -Expression $Command.Value -PrintResult
+                            }
+                            
+                            Start-Sleep -m 50
+                        }
+                    }
                 }
                 else{
-                    Write-Console -Message "Warning nature not specified for $jobDestination" -Color $COLOR_MSG_ERROR
+                    Log-Message -Message "Could not find installer at $jobDestination" -Level $global:LOG_LEVEL.Error -WriteToLog
                 }
-
-                if($DataProvider.Env -ne $null){
-                
-                    foreach($Variable in $DataProvider.Env.Var){
-                    
-                        Set-Environment-Variable                    `
-                            -Name $Variable.key                     `
-                            -Level $Variable.level                  `
-                            -ValueType $Variable.valueType          `
-                            -Prompt ($Variable.prompt -eq 'true')   `
-                            -AppendToCurrentValue ($Variable.setType -eq 'APPEND') `
-                            -AllowDuplicateAppend ($Variable.allowDuplicateAppend -eq 'true') `
-                            -Value $Variable.defaultValue
-                    }
-                }
-
-                # Refresh the Local Path Variable in case it was changed
-                $newValue = Get-Environment-Variable -Name "Path" -Level "Machine"
-                
-                if($env:Path -ne $newValue){
-                    Write-Console -Message "Path Updated to $newValue after installation of $jobName" -Color $COLOR_MSG_ITEM_START -WriteToLog
-                    $env:Path = $newValue;
-                }
-
-                if($DataProvider.Commands -ne $null){
-                
-                    foreach($Command in $DataProvider.Commands.Command){
-                    
-                        if($Command.Value -ne "" -and $Command.Value -ne $null){
-                            Get-Invoke-Expression-Result -Expression $Command.Value -PrintResult
-                        }
-                        
-                        Start-Sleep -m 50
-                    }
-                }
-            }
-            else
-            {
-                Write-Console -Message "`rCould not find installer at $jobDestination" -Color $COLOR_MSG_ERROR -WriteToLog
+            }else{
+                Log-Message -Message "$($DataProvider.InstalledProgramName) is already installed on this machine" -Level $global:LOG_LEVEL.Warn -WriteToLog
             }
         }
-        else
-        {
-            Write-Console -Message "Object was Incorrectly Typed, exected an InstallerConfiguration, use New-InstallerConfiguration to create one" -Color $COLOR_MSG_ERROR -WriteToLog
+        else{
+            Log-Message -Message "Object was Incorrectly Typed, exected an InstallerConfiguration, use New-InstallerConfiguration to create one" -Level $global:LOG_LEVEL.Error -WriteToLog
         }
     }
     
-    $EndBlock = { Set-ConsoleWriteMode -WriteMode $global:MODE_APPEND}
+    $EndBlock = { }
     
     # Run the Loop with the List Contents
     $List | ForEach-Object -Begin $BeginBlocK -End $EndBlock -Process $ScriptBlock 
 }
-
-Write-Console -Message "[utils.install_manager] Library Script Included." -Color $MAGENTA -Ticker $true -TickInterval 2 

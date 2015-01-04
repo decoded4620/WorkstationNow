@@ -19,6 +19,11 @@ $RECYCLE.BIN/
 
 # Bak files
 *.bak
+
+# Log Files
+*log.txt
+*log*.txt
+
 # =========================
 # Operating System Files
 # =========================
@@ -43,3 +48,4 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
