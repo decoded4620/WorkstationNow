@@ -68,7 +68,7 @@ function Get-InstalledSoftware(){
     
     $ScriptBlock = {
         
-        if(_$.DisplayName -ne $null){
+        if($_.DisplayName -ne $null){
          
             $obj = New-Object psobject @{
                 Name            = $_.DisplayName
