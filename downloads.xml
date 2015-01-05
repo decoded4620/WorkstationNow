@@ -2,14 +2,12 @@
 <Downloads>
     <!-- NOTE These are Downloaded in Parallel, however, they are installed in-order, to insure any dependencies are available -->
     
-    <!-- Installer Properties -->
-    
-    
     <!-- -->
     <!-- PERFORCE SOFTWARE -->
     <Installer
         Name="Perforce Visual Components"
         InstalledProgramName="Perforce Visual Components"
+        InstalledNameCheckExactMatch="true"
         Description="P4V 2012 64 Bit"
         LocalFile="p4inst.exe"
         Protocol="http"
@@ -22,10 +20,9 @@
     </Installer>
     
     
-    
     <!-- Ubuntu Image -->
     <Installer
-        Name="Ubuntu"
+        Name="Ubuntu 64 Bit"
         LocalFile="ubuntu-14.04.1-desktop-amd64.iso"
         Protocol="win-share"
         Url="\\VIKING\Server\software\ubuntu-14.04.1-desktop-amd64.iso"
@@ -34,11 +31,12 @@
         Query=""
         Nature="iso"
         />
-        
+    
     <!-- Oracle VirtualBox -->
     <Installer
         Name="Oracle VirtualBox VM"
         InstalledProgramName="Oracle VM VirtualBox 4.3.20"
+        InstalledNameCheckExactMatch="true"
         LocalFile="VirtualBox-4.3.20-96997-Win.exe"
         Protocol="http"
         Url="dlc-cdn.sun.com"
@@ -51,7 +49,8 @@
     <!-- BASE TEXT EDITOR / CODING IDE -->
     <Installer 
         Name="Notepad++" 
-        InstalledProgramName="Notepad ++"
+        InstalledProgramName="Notepad++"
+        InstalledNameCheckExactMatch="true"
         LocalFile="npp.6.7.Installer.exe" 
         Protocol="http"
         Url="download.tuxfamily.org"
@@ -92,6 +91,8 @@
 
     <Installer
         Name="GitHub Desktop For Windows"
+        InstalledProgramName="Github"
+        InstalledNameCheckExactMatch="false"
         LocalFile="GithubSetup.exe"
         Protocol="https"
         Url="github-windows.s3.amazonaws.com"
@@ -106,6 +107,7 @@
     <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
     <Installer
         Name="Windows Process Explorer"
+        InstalledProgramLocation="C:\Program Files (x86)\ProcessExplorer"
         LocalFile="ProcessExplorer.zip"
         Protocol="http"
         Url="download.sysinternals.com"
@@ -141,6 +143,7 @@
     
     <Installer
         Name="Apache Maven 3.2.25"
+        InstalledProgramLocation="C:\Program Files (x86)\Apache\apache-maven-3.2.5"
         LocalFile="apache-maven-3.2.5-bin.zip"
         Protocol="http"
         Url="mirror.cc.columbia.edu"
@@ -175,14 +178,29 @@
         Query=""
         Nature="exe"
         />
-
+        
     <Installer 
-        Name="Chrome"
-        LocalFile="ChromeSetup.exe"
-        Protocol="https"
-        Url="dl.google.com"
+        Name="Opera"
+        InstalledProgramName="Opera Stable 26.0.1656.60"
+        InstalledNameCheckExactMatch="true"
+        LocalFile="Opera_NI_Stable.exe"
+        Protocol="win-share"
+        Url="\\VIKING\Server\software\Opera_NI_Stable.exe"
         Port=""
-        Path="/tag/s/lang%3Den%26appname%3DGoogle%2520Chrome/update2/installers/ChromeSetup.exe"
+        Path=""
+        Query=""
+        Nature="exe"
+        />
+        
+    <Installer 
+        Name="FireFox"
+        InstalledProgramName="Mozilla FireFox 34.0.5 (x86 en-US)"
+        InstalledNameCheckExactMatch="true"
+        LocalFile="Firefox Setup Stub 34.0.5.exe"
+        Protocol="https"
+        Url="download-installer.cdn.mozilla.net"
+        Port=""
+        Path="/pub/firefox/releases/34.0.5/win32/en-US/Firefox%20Setup%20Stub%2034.0.5.exe"
         Query=""
         Nature="exe"
         />
@@ -190,6 +208,7 @@
     <Installer 
         Name="Charles Web Proxy"
         InstalledProgramName="Charles 3.9.3"
+        InstalledNameCheckExactMatch="true"
         LocalFile="charles-proxy-3.9.3-win64.msi"
         Protocol="http"
         Url="www.charlesproxy.com"
@@ -216,7 +235,7 @@
     <Installer
         Name="Flash Player 16 Content Debugger (FireFox) NPAPI"
         InstalledProgramName="Adobe Flash Player 16 NPAPI"
-        LocalFile="flashplayer_16_ax_debug.exe"
+        LocalFile="flashplayer_16_plugin_debug.exe"
         Protocol="http"
         Url="download.macromedia.com"
         Port=""
@@ -228,7 +247,7 @@
      <Installer
         Name="Flash Player 16 Content Debugger (Chrome / Opera) PPAPI"
         InstalledProgramName="Adobe Flash Player 16 PPAPI"
-        LocalFile="flashplayer_16_ax_debug.exe"
+        LocalFile="flashplayer_16_ppapi_debug.exe"
         Protocol="http"
         Url="download.macromedia.com"
         Port=""
@@ -236,7 +255,6 @@
         Query=""
         Nature="exe"
         />
-        
         
     <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
     <!--  EXTRAS -->
@@ -258,6 +276,7 @@
      <Installer
         Name="F.lux"
         InstalledProgramName="f.lux"
+        InstalledNameCheckExactMatch="true"
         LocalFile="flux-setup.exe"
         Protocol="https"
         Url="justgetflux.com"
