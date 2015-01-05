@@ -12,11 +12,11 @@ if($includes_console_feedback_ps1 -ne $true)
         Error   = 0
         Warn    = 1
         Fail    = 2
-        Verbose = 3
-        Debug   = 4
-        Pending = 5
-        Success = 6
-        Info    = 7
+        Pending = 3
+        Success = 4
+        Info    = 5
+        Verbose = 6
+        Debug   = 7
     }
     
     function Get-LogLevel-String([int]$Level){
@@ -167,6 +167,9 @@ if($includes_console_feedback_ps1 -ne $true)
             [string]$Color=$global:DARKCYAN,
             
             [Parameter(Mandatory=$false)]
+            [string]$BackgroundColor=$global:BLACK,
+            
+            [Parameter(Mandatory=$false)]
             [switch]$WriteToLog
         )
             
@@ -186,8 +189,8 @@ if($includes_console_feedback_ps1 -ne $true)
                 {$_ -eq $global:LOG_LEVEL.Debug}{
                     Write-Debug $Message
                 }
-                {$_ -gt $global:LOG_LEVEL.Debug}{
-                    Write-Host $Message -foregroundcolor $Color
+                {$_ -eq $global:LOG_LEVEL.Pending -or $_ -eq $global:LOG_LEVEL.Success -or $_ -eq $global:LOG_LEVEL.Info}{
+                    Write-Host $Message -foregroundcolor $Color -backgroundcolor $BackgroundColor
                 }
                 {$_ -eq $global:LOG_LEVEL.Warn}{
                     Write-Warning $Message

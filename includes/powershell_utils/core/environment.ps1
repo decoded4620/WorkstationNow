@@ -71,27 +71,27 @@ function New-EnvironmentVariableConfiguration () {
 function Set-Environment-Variable{
 
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [string]$Name,
         
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [string]$Value="",
         
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [ValidateSet('User','Machine', 'Process')]
         [string]$Level='User',
         
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [ValidateSet('STRING','PATH')]
         [string]$ValueType='STRING',
         
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [bool]$Prompt=$false,
         
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [bool]$AppendToCurrentValue=$false,
         
-        [Parameter(Mandatory=$false)]
+        [Parameter(Mandatory=$false,ValueFromPipeline=$true,ValueFromPipelineByPropertyName=$true)]
         [bool]$AllowDuplicateAppend=$true,
         
         [Parameter(Mandatory=$false)]

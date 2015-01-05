@@ -9,6 +9,7 @@ param(
     [string]$ConfigFileUrl="config.xml" 
 )
 
+$PropertiesFileUrl = "$($env:USERNAME).properties"
 # Locale Setting
 $Language = (get-host).CurrentCulture.Name;
 
@@ -43,39 +44,46 @@ if($EnvironmentCfgNode -eq $null -or $EnvironmentCfgNode.url -eq $null){
     exit;
 }
 
-
-
 #######################################################################################################################
 # 
 # set all the initial variable values from configuration
 #
 #######################################################################################################################
 foreach($SettingNode in $SettingsNodeList){
-
+    
+    $regex = "\w+"
+    
     if($SettingNode.nature -eq 'assign'){
-        $expr       = "$($SettingNode.id)='$($SettingNode.value)'"
+        
+        if($SettingNode.id -match $regex){
+            $expr       = "$($SettingNode.id)='$($SettingNode.value)'"
+            
+            Write-Host "  > $expr" -foregroundcolor "DarkGray"
+            Invoke-Expression $expr
+        }
     }
     elseif($SettingNode.nature -eq 'var'){
-    
-        $expr       = "Set-Variable $($SettingNode.id) -value $(SettingNode.value)"
 
-        if($SettingNode.scope -ne  $null){
-            $expr   += " -scope $SettingNode.scope"
-        }
+        if($SettingNode.id -match $regex){
         
-        # todo -explore multiple options
-        if($SettingNode.option -ne $null){
-            $expr   += " -option $($SettingNode.option)"
+            $expr       = "Set-Variable $($SettingNode.id) -value $(SettingNode.value)"
+
+            if($SettingNode.scope -ne  $null){
+                $expr   += " -scope $SettingNode.scope"
+            }
+            
+            # todo -explore multiple options
+            if($SettingNode.option -ne $null){
+                $expr   += " -option $($SettingNode.option)"
+            }
+            Write-Host "  > $expr" -foregroundcolor "DarkGray"
+            Invoke-Expression $expr
         }
     }
-
-    Write-Host "  > $expr" -foregroundcolor "DarkGray"
-
-    Invoke-Expression $expr
+    else{
+        Write-Warning "Unknown Nature $($SettingNode.nature)"
+    }
 }
-
-Write-Debug     "[Debugging Enabled]"
-Write-Verbose   "[Verbose Logging Enabled]"
 
 
 #######################################################################################################################
@@ -104,7 +112,7 @@ if(!(Test-Path $url)){
 else{
     Write-Host "Environment Downloads Configuration Url $url" -foregroundcolor "DarkCyan"
 }
-# downloads the installers and opens the directory where they were downloaded
+# Installer Downloads Configuration XML
 [xml]$DownloadsConfiguration        = Get-Content $url
 
 
@@ -137,21 +145,49 @@ Set-Variable POWERSHELL_UTILS_LOG_FILE  -Option Constant  -Scope Global -Value "
 
 # if we supplied a logger level
 if($LoggerLevel -ne $null){
-    Set-Variable LOGGER_LEVEL               -Scope Global -Value $LoggerLevel
+    Set-Variable LOGGER_LEVEL -Scope Global -Value $LoggerLevel
 }
 # default to debug
 else{
-    Set-Variable LOGGER_LEVEL              -Scope Global -Value $global:LOG_LEVEL.Debug
+    Set-Variable LOGGER_LEVEL -Scope Global -Value $global:LOG_LEVEL.Debug
 }
 # Set the window title from the $ProgramTitle from config file
 if($ProgramTitle -ne $null){
     $RawUI.WindowTitle              = $Host.UI.RawUI.WindowTitle.Substring(0, $RawUI.WindowTitle.IndexOf('-')) + "- $ProgramTitle"
 }
 
+<#
+$Container = New-Object PsObject;
+
+[xml]$Test = Get-Content "test_xml.xml"
+XML-To-PSObject -Xml $DownloadsConfiguration.SelectSingleNode("//Downloads") -Container $Container
+
+
+
+Write-Host ("Object Returned: ( $Container )") 
+ Write-Host "----------------------------------------------------------------------------------"
+Iterate-Object -PSObject $Container -tabStr ""
+ Write-Host "----------------------------------------------------------------------------------"
+ 
+[xml]$NewXML = New-Object xml
+$Element = $NewXML.CreateElement("Downloads");
+$NewXML.AppendChild($Element);
+
+PSObject-To-XML -PSObject $Container -Container $Element -XmlDoc $NewXML
+
+$TranslatedContainer = New-Object PsObject;
+
+XML-To-PSObject -Xml $NewXml.SelectSingleNode("//Downloads") -Container $TranslatedContainer
+
+ Write-Host "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+Iterate-Object -PSObject $TranslatedContainer -tabStr ""
+ Write-Host "----------------------------------------------------------------------------------"
+ 
+exit;
+#>
 Log-Message -Message "Language: $Language"                                  -Level $global:LOG_LEVEL.Info -WriteToLog
 Log-Message -Message "Running Directory: $POWERSHELL_UTILS_WORKING_DIR"     -Level $global:LOG_LEVEL.Info -WriteToLog
 
-Start-Sleep -s 2
 
 $result                             = ( Show-Alert                                                      `
                                         -Message "$ProgramTitle will now configure your Workspace." `

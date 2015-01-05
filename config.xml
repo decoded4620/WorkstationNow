@@ -15,7 +15,7 @@
         <setting id="$LibraryPath"          nature="assign"   value="includes\powershell_utils" />
         
         <!-- all downloaded software will be placed HERE -->
-        <setting id="$DownloadDirectory"    nature="assign"   value="C:\~Temp\downloads" />
+        <setting id="$DownloadDirectory"    nature="assign"   value="~\AppData\Local\WorkstationNow\downloads" />
         
         <!-- Logging Configuration -->
         <setting id="$LoggingDirectory"     nature="assign"   value="log" />

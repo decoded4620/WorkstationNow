@@ -68,7 +68,7 @@ function Get-InstalledSoftware(){
     
     $ScriptBlock = {
         
-        if($_.DisplayName -ne $null){
+        if($_.DisplayName -ne $null -and $_.DisplayName -ne ''){
          
             $obj = New-Object psobject @{
                 Name            = $_.DisplayName
@@ -81,6 +81,11 @@ function Get-InstalledSoftware(){
         }
     }
     
+    # Check Current User Software
+    Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Sort-Object DisplayName | % $ScriptBlock
+    Get-ItemProperty HKCU:\Software\Wow6432Node\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Sort-Object DisplayName | % $ScriptBlock
+    
+    # Check Local Machine Software
     Get-ItemProperty HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Sort-Object DisplayName| % $ScriptBlock
     Get-ItemProperty HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Select-Object DisplayName, DisplayVersion, Publisher, InstallDate | Sort-Object DisplayName | % $ScriptBlock
     
@@ -89,25 +94,44 @@ function Get-InstalledSoftware(){
 
 function Is-Installed([string]$InstalledProgramName, [bool]$ExactMatch=$true){
 
-    Log-Message -Message "[Is-Installed]$InstalledProgramName ( ExactMatch $ExactMatch )" -Level $global:LOG_LEVEL.Pending
-     $found = $false;
-    if($ExactMatch){
-        $ScriptBlock = {
-            if($found -eq $false -and $_.Name -eq $InstalledProgramName){
-                $found = $true
+    $found = $false;
+    if($InstalledProgramName -ne $null){
+        $InstalledProgramName = $InstalledProgramName.ToLower();
+        
+        Log-Message -Message "[Is-Installed]$InstalledProgramName ( ExactMatch $ExactMatch )" -Level $global:LOG_LEVEL.Pending
+         
+        if($ExactMatch){
+            $ScriptBlock = {
+                
+                $checkName = ""
+                
+                if($_.Name -ne $null){
+                    $checkName = $_.Name.ToLower()
+                }
+                
+                if($found -eq $false -and $checkName -eq $InstalledProgramName){
+                    $found = $true
+                }
             }
+            Get-InstalledSoftware | % -Process $ScriptBlock
         }
-        Get-InstalledSoftware | % -Process $ScriptBlock
-    }
-    else{
-        $ScriptBlock = {
-            if($found -eq $false -and $_.Name.IndexOf($InstalledProgramName) -gt -1){
-                $found = $true
+        else{
+            $ScriptBlock = {
+                $checkName = ""
+                
+                if($_.Name -ne $null){
+                    $checkName = $_.Name.ToLower()
+                }
+                
+                if($found -eq $false -and $checkName.IndexOf($InstalledProgramName) -gt -1){
+                    $found = $true
+                }
             }
+            Get-InstalledSoftware | % -Process $ScriptBlock
         }
-        Get-InstalledSoftware | % -Process $ScriptBlock
+        Log-Message -Message "[Is-Installed]$InstalledProgramName ( ExactMatch $ExactMatch ) Result: $found" -Level $global:LOG_LEVEL.Success
     }
-    Log-Message -Message "[Is-Installed]$InstalledProgramName ( ExactMatch $ExactMatch ) Result: $found" -Level $global:LOG_LEVEL.Success
+    
     $found
 }
 
@@ -161,25 +185,30 @@ function Install ( [System.Collections.ArrayList]$List )
 
             $alreadyInstalled = $false;
             
+            # Check InstalledProgramName
             if($DataProvider.InstalledProgramName -ne $null){
-                $alreadyInstalled = Is-Installed -InstalledProgramName $DataProvider.InstalledProgramName -ExactMatch ($DataProvider.InstalledNameCheckExactMatch -ne $false)
+                $alreadyInstalled = Is-Installed -InstalledProgramName $DataProvider.InstalledProgramName -ExactMatch ($DataProvider.InstalledNameCheckExactMatch -eq $null -or $DataProvider.InstalledNameCheckExactMatch -eq $true)
+            }
+            # otherwise check #InstalledProgramLocation
+            elseif($DataProvider.InstalledProgramLocation -ne $null){
+                $alreadyInstalled = Test-Path $DataProvider.InstalledProgramLocation -pathType container
+            }
+            else{
+                $alreadyInstalled = $false
             }
             
-            $jobSource                  = $DownloadRequest.Source;
-            $jobDestination             = $DownloadRequest.Destination;
+            $jobSource                              = $DownloadRequest.Source;
+            $jobDestination                         = $DownloadRequest.Destination;
             
             if( $alreadyInstalled -eq $false ){
             
                 if( Test-Path $jobDestination -pathType leaf )
                 {
-                    $jobName                = $DataProvider.Name
-                    Log-Message -Message "Installing $jobName in 1 second" -Level $global:LOG_LEVEL.Verbose
-                    Start-Sleep -s 1
-
-                    $Nature                 = $DataProvider.Nature
-                    $InstallerFile          = $DataProvider.InstallerFile
-                    $extractTo              = $DataProvider.ExtractTo
-                    $moveTo                 = $DataProvider.MoveTo
+                    $jobName                        = $DataProvider.Name
+                    $Nature                         = $DataProvider.Nature
+                    $InstallerFile                  = $DataProvider.InstallerFile
+                    $extractTo                      = $DataProvider.ExtractTo
+                    $moveTo                         = $DataProvider.MoveTo
                     
                     # For Zip Files, we need to extract and move the contents.
                     if($Nature -eq 'zip'){
@@ -192,9 +221,10 @@ function Install ( [System.Collections.ArrayList]$List )
 
                         if($zipResult -eq $true)
                         {
-                            $fileName = Split-Path $unzipDestination -leaf
+                            $fileName               = Split-Path $unzipDestination -leaf
+                            $canMove                = $true
+                            $existenceCheckPath     = "$moveTo$fileName"
                             
-                            $existenceCheckPath = "$moveTo$fileName"
                             if(Test-Path "$moveTo$fileName"){
                                 Log-Message -Message "Removing old item $fileName => $existenceCheckPath" -Level $global:LOG_LEVEL.Pending -WriteToLog
                                 
@@ -204,14 +234,17 @@ function Install ( [System.Collections.ArrayList]$List )
                                     $lvl = $global:LOG_LEVEL.SUCCESS
                                 }else{
                                     $lvl = $global:LOG_LEVEL.FAIL
+                                    $canMove = $false
                                 }
 
                                 Log-Message -Message "Item Removed: $recycled" -Level $lvl -WriteToLog
                             }
 
-                            $expr ='move ' + '"'+ $unzipDestination + '" "' + $moveTo + '"';
+                            if($canMove){
+                                $expr ='move ' + '"'+ $unzipDestination + '" "' + $moveTo + '"';
+                                Get-Invoke-Expression-Result -Expression $expr -PrintResult
+                            }
                             
-                            Get-Invoke-Expression-Result -Expression $expr -PrintResult
                             
                             #  If there is an additional installer file to run, we'll run it
                             if($InstallerFile -ne '' -and $InstallerFile -ne $null){

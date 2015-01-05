@@ -1,0 +1,16 @@
+<Downloads>
+    <Installer attribute1="1" attribute2="2">
+        <ChildNode1 attribute1="CN1-0">
+            <ChildNode2 attribute1="a" attribute2="b">
+            </ChildNode2>
+        </ChildNode1>
+        
+        <ChildNode1 attribute1="CN1-1">
+            <ChildNode2 attribute1="a" attribute2="b">
+            </ChildNode2>
+        </ChildNode1>
+        
+    </Installer>
+    <Other attribute1="other">
+    </Other>
+</Downloads>
